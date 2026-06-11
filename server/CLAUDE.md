@@ -4,18 +4,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-This is a new, minimal Fastify server scaffold. The entire server currently lives in `server.js`. There is no test suite, build step, linter, or routing/module structure set up yet — these will need to be established as the project grows.
+A Fastify server with JWT auth and a Postgres-backed customer (CRM) API. There is no test suite, build step, or linter set up yet.
 
 ## Commands
 
-- Install dependencies: `pnpm install` (this project uses pnpm, pinned via `packageManager: pnpm@10.22.0` in package.json)
-- Run the server: `node server.js` (starts Fastify on port 3000, with logging enabled)
+All commands can be run from the repo root via `make` (see `Makefile`), or from `server/` via `pnpm`:
+
+- `make up` / `make down` — start/stop Postgres via docker compose (host port 5433, since 5432 may be taken by a local Postgres install)
+- `make install` — `pnpm install`
+- `make db-migrate` — apply any pending SQL migrations in `server/db/migrations/`
+- `make seed-admin EMAIL=... PASSWORD=...` — create/update the initial admin user
+- `make dev` — run the server with `node --watch` (auto-restart)
+- `make start` — run the server normally
 - `pnpm test` is a placeholder and currently exits with an error — there is no test runner configured.
+
+Server config comes from `server/.env` (see `.env.example`): `DATABASE_URL`, `JWT_SECRET`, `PORT`.
 
 ## Architecture
 
-- `server.js` is the entry point. It creates a Fastify instance with logging enabled and registers routes directly (currently a single `GET /` route).
-- The repo root (one level up, `Vicky/`) also contains an empty `client/` directory and a `docker-compose.yml`, suggesting a planned client/server split with containerized deployment — neither is implemented yet.
+- `server.js` is the entry point. It registers plugins (`src/plugins/`) then route modules (`routes/`), each under a path prefix.
+- `src/plugins/env.js` — loads/validates env vars via `@fastify/env`, exposes `fastify.config`.
+- `src/plugins/db.js` — registers `@fastify/postgres`, exposes `fastify.pg`.
+- `src/plugins/jwt.js` — registers `@fastify/jwt` and decorates `fastify.authenticate` (verifies JWT) and `fastify.requireRole(role)` (auth + role check), used as route `preHandler`s.
+- `src/constants/` — shared enums referenced by both DB CHECK constraints and route validation schemas: `roles.js` (user roles, currently only `admin`), `idProofTypes.js`, `connectionTypes.js`, `paymentMethods.js`.
+- `src/services/` — DB access layer (raw SQL via `fastify.pg`), one file per resource (`auth.service.js`, `customer.service.js`).
+- `routes/` — one Fastify plugin per resource (`auth.js`, `customers.js`), each following the Schema -> Implementation -> Registration layout described below.
+
+### Database migrations
+
+- `server/db/migrations/NNNN_description.sql` — sequential, numbered SQL migration files. Never edit an already-applied migration; add a new numbered file instead.
+- `server/db/migrate.js` (`pnpm db:migrate`) — applies any `.sql` files not yet recorded in the `schema_migrations` table, in filename order, each wrapped in a transaction.
+- `server/db/seed-admin.js` (`pnpm seed:admin <email> <password>`) — upserts an admin user; does not touch schema.
+
+The repo root (one level up, `Vicky/`) also contains an empty `client/` directory, suggesting a planned client/server split — not implemented yet.
 
 
 
