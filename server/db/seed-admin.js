@@ -1,6 +1,4 @@
 import "dotenv/config";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import pg from "pg";
 import bcrypt from "bcrypt";
 import { ROLES } from "../src/constants/roles.js";
@@ -12,13 +10,8 @@ if (!email || !password) {
   process.exit(1);
 }
 
-const schemaPath = fileURLToPath(new URL("./schema.sql", import.meta.url));
-const schema = readFileSync(schemaPath, "utf-8");
-
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 await client.connect();
-
-await client.query(schema);
 
 const passwordHash = await bcrypt.hash(password, 10);
 

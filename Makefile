@@ -1,4 +1,4 @@
-.PHONY: up down logs ps install dev start seed-admin
+.PHONY: up down logs ps install dev start db-migrate seed-admin
 
 # --- Docker (Postgres) ---
 up:
@@ -22,6 +22,9 @@ dev:
 
 start:
 	cd server && pnpm start
+
+db-migrate:
+	cd server && pnpm db:migrate
 
 seed-admin:
 	cd server && pnpm seed:admin $(EMAIL) $(PASSWORD)
