@@ -51,3 +51,36 @@ export function createCustomer(data: CustomerInput) {
     body: JSON.stringify(data),
   });
 }
+
+export function updateCustomer(id: number, data: Partial<CustomerInput>) {
+  return apiFetch<Customer>(`/customers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteCustomer(id: number) {
+  return apiFetch<void>(`/customers/${id}`, {
+    method: "DELETE",
+  });
+}
+
+function buildLabelMap(options: ReadonlyArray<{ value: string; label: string }>) {
+  return Object.fromEntries(options.map((option) => [option.value, option.label]));
+}
+
+const PAYMENT_METHOD_LABELS = buildLabelMap(PAYMENT_METHODS);
+const ID_PROOF_TYPE_LABELS = buildLabelMap(ID_PROOF_TYPES);
+const CONNECTION_TYPE_LABELS = buildLabelMap(CONNECTION_TYPES);
+
+export function formatPaymentMethod(value: string) {
+  return PAYMENT_METHOD_LABELS[value] ?? value;
+}
+
+export function formatIdProofType(value: string) {
+  return ID_PROOF_TYPE_LABELS[value] ?? value;
+}
+
+export function formatConnectionTypes(values: string[]) {
+  return values.map((value) => CONNECTION_TYPE_LABELS[value] ?? value).join(", ");
+}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,8 @@ import {
   ID_PROOF_TYPES,
   PAYMENT_METHODS,
   createCustomer,
+  updateCustomer,
+  type Customer,
   type CustomerInput,
 } from "@/lib/customer";
 import { ApiError } from "@/lib/api";
@@ -40,11 +42,41 @@ const emptyForm: CustomerInput = {
   payment_method: "",
 };
 
-export function CustomerFormDialog({ onCreated }: { onCreated: () => void }) {
+function formFromCustomer(customer: Customer): CustomerInput {
+  return {
+    name: customer.name,
+    address: customer.address,
+    id_proof_type: customer.id_proof_type,
+    phone_number: customer.phone_number,
+    second_phone_number: customer.second_phone_number ?? "",
+    connection_types: customer.connection_types,
+    plan_type: customer.plan_type,
+    status: customer.status,
+    payment_method: customer.payment_method,
+  };
+}
+
+interface CustomerFormDialogProps {
+  customer?: Customer;
+  trigger: ReactNode;
+  onSaved: () => void;
+}
+
+export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormDialogProps) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<CustomerInput>(emptyForm);
+  const [form, setForm] = useState<CustomerInput>(
+    customer ? formFromCustomer(customer) : emptyForm
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      setForm(customer ? formFromCustomer(customer) : emptyForm);
+      setError(null);
+    }
+    setOpen(nextOpen);
+  }
 
   function toggleConnectionType(value: string, checked: boolean) {
     setForm((prev) => ({
@@ -64,10 +96,14 @@ export function CustomerFormDialog({ onCreated }: { onCreated: () => void }) {
       if (!payload.second_phone_number) {
         delete (payload as Partial<CustomerInput>).second_phone_number;
       }
-      await createCustomer(payload);
-      setForm(emptyForm);
+      if (customer) {
+        await updateCustomer(customer.id, payload);
+      } else {
+        await createCustomer(payload);
+        setForm(emptyForm);
+      }
       setOpen(false);
-      onCreated();
+      onSaved();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
@@ -76,13 +112,11 @@ export function CustomerFormDialog({ onCreated }: { onCreated: () => void }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>New Customer</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>New Customer</DialogTitle>
+          <DialogTitle>{customer ? "Edit Customer" : "New Customer"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">

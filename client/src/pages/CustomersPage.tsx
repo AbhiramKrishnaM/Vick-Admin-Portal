@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,7 +12,13 @@ import {
 } from "@/components/ui/table";
 import { CustomerFormDialog } from "@/components/CustomerFormDialog";
 import { ApiError, clearToken } from "@/lib/api";
-import { listCustomers, type Customer } from "@/lib/customer";
+import {
+  deleteCustomer,
+  formatConnectionTypes,
+  formatPaymentMethod,
+  listCustomers,
+  type Customer,
+} from "@/lib/customer";
 import { toast } from "sonner";
 
 export function CustomersPage() {
@@ -39,21 +46,32 @@ export function CustomersPage() {
     loadCustomers();
   }, [loadCustomers]);
 
-  function handleLogout() {
-    clearToken();
-    navigate("/login", { replace: true });
+  async function handleDelete(customer: Customer) {
+    if (!window.confirm(`Delete customer "${customer.name}"?`)) {
+      return;
+    }
+    try {
+      await deleteCustomer(customer.id);
+      toast.success("Customer deleted");
+      loadCustomers();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearToken();
+        navigate("/login", { replace: true });
+        return;
+      }
+      toast.error("Failed to delete customer");
+    }
   }
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
+    <div className="mx-auto flex max-w-7xl flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Customers</h1>
-        <div className="flex gap-2">
-          <CustomerFormDialog onCreated={loadCustomers} />
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
-        </div>
+        <CustomerFormDialog
+          onSaved={loadCustomers}
+          trigger={<Button>New Customer</Button>}
+        />
       </div>
 
       <div className="rounded-md border">
@@ -67,18 +85,19 @@ export function CustomersPage() {
               <TableHead>Plan</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Payment</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : customers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   No customers yet.
                 </TableCell>
               </TableRow>
@@ -93,10 +112,30 @@ export function CustomersPage() {
                       ? ` / ${customer.second_phone_number}`
                       : ""}
                   </TableCell>
-                  <TableCell>{customer.connection_types.join(", ")}</TableCell>
+                  <TableCell>{formatConnectionTypes(customer.connection_types)}</TableCell>
                   <TableCell>{customer.plan_type}</TableCell>
                   <TableCell>{customer.status}</TableCell>
-                  <TableCell>{customer.payment_method}</TableCell>
+                  <TableCell>{formatPaymentMethod(customer.payment_method)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <CustomerFormDialog
+                        customer={customer}
+                        onSaved={loadCustomers}
+                        trigger={
+                          <Button variant="ghost" size="icon">
+                            <Pencil />
+                          </Button>
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(customer)}
+                      >
+                        <Trash2 className="text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
