@@ -18,7 +18,7 @@ await fastify.register(auth, { prefix: "/auth" });
 await fastify.register(customers, { prefix: "/customers" });
 
 try {
-  await fastify.listen({ port: fastify.config.PORT });
+  await fastify.listen({ port: fastify.config.PORT, host: fastify.config.HOST });
 } catch (err) {
   fastify.log.error(err);
   process.exit(1);

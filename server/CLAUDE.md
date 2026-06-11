@@ -8,17 +8,25 @@ A Fastify server with JWT auth and a Postgres-backed customer (CRM) API. There i
 
 ## Commands
 
-All commands can be run from the repo root via `make` (see `Makefile`), or from `server/` via `pnpm`:
+All commands can be run from the repo root via `make` (see `Makefile`), or from `server/`/`client/` via `pnpm`:
 
-- `make up` / `make down` — start/stop Postgres via docker compose (host port 5433, since 5432 may be taken by a local Postgres install)
-- `make install` — `pnpm install`
+### Docker (postgres + server + client, full stack)
+
+- `make up` / `make down` — start/stop the whole stack via docker compose (postgres on host port 5433, server on 3000, client on 5173; source dirs are bind-mounted so both apps hot-reload)
+- `make build` — rebuild images after dependency changes
+- `make docker-db-migrate` — apply pending SQL migrations inside the `server` container
+- `make docker-seed-admin EMAIL=... PASSWORD=...` — create/update the initial admin user inside the `server` container
+
+### Local dev (without Docker; `make up` still needed for postgres)
+
+- `make install` — `pnpm install` in `server/`
 - `make db-migrate` — apply any pending SQL migrations in `server/db/migrations/`
 - `make seed-admin EMAIL=... PASSWORD=...` — create/update the initial admin user
 - `make dev` — run the server with `node --watch` (auto-restart)
 - `make start` — run the server normally
 - `pnpm test` is a placeholder and currently exits with an error — there is no test runner configured.
 
-Server config comes from `server/.env` (see `.env.example`): `DATABASE_URL`, `JWT_SECRET`, `PORT`.
+Server config comes from `server/.env` (see `.env.example`): `DATABASE_URL`, `JWT_SECRET`, `PORT`, `HOST` (must be `0.0.0.0` in Docker so the published port is reachable). Client config comes from `client/.env`: `VITE_API_URL`.
 
 ## Architecture
 
@@ -36,7 +44,7 @@ Server config comes from `server/.env` (see `.env.example`): `DATABASE_URL`, `JW
 - `server/db/migrate.js` (`pnpm db:migrate`) — applies any `.sql` files not yet recorded in the `schema_migrations` table, in filename order, each wrapped in a transaction.
 - `server/db/seed-admin.js` (`pnpm seed:admin <email> <password>`) — upserts an admin user; does not touch schema.
 
-The repo root (one level up, `Vicky/`) also contains an empty `client/` directory, suggesting a planned client/server split — not implemented yet.
+The repo root (one level up, `Vicky/`) contains `client/`, a Vite + React + TypeScript + shadcn/ui frontend (login + customers CRUD), and the root `docker-compose.yml` defining `postgres`, `server`, and `client` services.
 
 
 

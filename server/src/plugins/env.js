@@ -8,6 +8,7 @@ const schema = {
     DATABASE_URL: { type: "string" },
     JWT_SECRET: { type: "string" },
     PORT: { type: "number", default: 3000 },
+    HOST: { type: "string", default: "127.0.0.1" },
   },
 };
 

@@ -1,11 +1,14 @@
-.PHONY: up down logs ps install dev start db-migrate seed-admin
+.PHONY: up down logs ps build install dev start db-migrate seed-admin docker-db-migrate docker-seed-admin
 
-# --- Docker (Postgres) ---
+# --- Docker (postgres + server + client) ---
 up:
 	docker compose up -d
 
 down:
 	docker compose down
+
+build:
+	docker compose build
 
 logs:
 	docker compose logs -f
@@ -13,7 +16,13 @@ logs:
 ps:
 	docker compose ps
 
-# --- Server ---
+docker-db-migrate:
+	docker compose exec server pnpm db:migrate
+
+docker-seed-admin:
+	docker compose exec server pnpm seed:admin $(EMAIL) $(PASSWORD)
+
+# --- Local dev (without Docker, requires `make up` for postgres) ---
 install:
 	cd server && pnpm install
 
