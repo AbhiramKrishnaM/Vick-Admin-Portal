@@ -18,7 +18,7 @@ export function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <aside className="flex w-56 shrink-0 flex-col border-r p-4">
         <div className="mb-6 px-2 text-lg font-semibold">Vicky Cable</div>
         <nav className="flex flex-1 flex-col gap-1">
