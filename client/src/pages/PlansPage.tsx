@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlanFormDialog } from "@/components/PlanFormDialog";
 import { ApiError, clearToken } from "@/lib/api";
 import { PLAN_CATEGORIES, deletePlan, listPlans, type Plan } from "@/lib/plan";
@@ -73,62 +74,78 @@ export function PlansPage() {
       ) : plans.length === 0 ? (
         <p className="text-center text-muted-foreground">No plans yet.</p>
       ) : (
-        PLAN_CATEGORIES.map((category) => {
-          const categoryPlans = plans.filter((plan) => plan.category === category.value);
-          if (categoryPlans.length === 0) {
-            return null;
-          }
-          return (
-            <div key={category.value} className="rounded-md border">
-              <div className="bg-amber-400 px-4 py-2 font-semibold">
+        <Tabs defaultValue={PLAN_CATEGORIES[0].value}>
+          <TabsList>
+            {PLAN_CATEGORIES.map((category) => (
+              <TabsTrigger key={category.value} value={category.value}>
                 {category.label}
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Speed</TableHead>
-                    <TableHead>FUP</TableHead>
-                    <TableHead>Validity</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {categoryPlans.map((plan) => (
-                    <TableRow key={plan.id}>
-                      <TableCell>{plan.name}</TableCell>
-                      <TableCell>{plan.speed}</TableCell>
-                      <TableCell>{plan.fup}</TableCell>
-                      <TableCell>{plan.validity ?? ""}</TableCell>
-                      <TableCell className="text-right">{plan.amount}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <PlanFormDialog
-                            plan={plan}
-                            onSaved={loadPlans}
-                            trigger={
-                              <Button variant="ghost" size="icon">
-                                <Pencil />
-                              </Button>
-                            }
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(plan)}
-                          >
-                            <Trash2 className="text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          );
-        })
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {PLAN_CATEGORIES.map((category) => {
+            const categoryPlans = plans.filter((plan) => plan.category === category.value);
+            return (
+              <TabsContent key={category.value} value={category.value}>
+                <div className="rounded-md border">
+                  <div className="bg-amber-400 px-4 py-2 font-semibold">
+                    {category.label}
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Plan</TableHead>
+                        <TableHead>Speed</TableHead>
+                        <TableHead>FUP</TableHead>
+                        <TableHead>Validity</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categoryPlans.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center">
+                            No plans in this category yet.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        categoryPlans.map((plan) => (
+                          <TableRow key={plan.id}>
+                            <TableCell>{plan.name}</TableCell>
+                            <TableCell>{plan.speed}</TableCell>
+                            <TableCell>{plan.fup}</TableCell>
+                            <TableCell>{plan.validity ?? ""}</TableCell>
+                            <TableCell className="text-right">{plan.amount}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <PlanFormDialog
+                                  plan={plan}
+                                  onSaved={loadPlans}
+                                  trigger={
+                                    <Button variant="ghost" size="icon">
+                                      <Pencil />
+                                    </Button>
+                                  }
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDelete(plan)}
+                                >
+                                  <Trash2 className="text-destructive" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+            );
+          })}
+        </Tabs>
       )}
     </div>
   );
