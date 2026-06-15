@@ -28,6 +28,7 @@ import {
   type Customer,
   type CustomerInput,
 } from "@/lib/customer";
+import { PLAN_CATEGORIES, listPlans, type Plan } from "@/lib/plan";
 import { ApiError } from "@/lib/api";
 
 const emptyForm: CustomerInput = {
@@ -69,14 +70,26 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
   );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [planCategory, setPlanCategory] = useState("");
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
-      setForm(customer ? formFromCustomer(customer) : emptyForm);
+      const initialForm = customer ? formFromCustomer(customer) : emptyForm;
+      setForm(initialForm);
       setError(null);
+      listPlans()
+        .then((loadedPlans) => {
+          setPlans(loadedPlans);
+          const matchedPlan = loadedPlans.find((plan) => plan.name === initialForm.plan_type);
+          setPlanCategory(matchedPlan?.category ?? "");
+        })
+        .catch(() => setPlans([]));
     }
     setOpen(nextOpen);
   }
+
+  const categoryPlans = plans.filter((plan) => plan.category === planCategory);
 
   function toggleConnectionType(value: string, checked: boolean) {
     setForm((prev) => ({
@@ -199,13 +212,47 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="plan_type">Plan Type</Label>
-            <Input
-              id="plan_type"
-              value={form.plan_type}
-              onChange={(e) => setForm({ ...form, plan_type: e.target.value })}
+            <Label>Plan Category</Label>
+            <Select
+              value={planCategory}
+              onValueChange={(value) => {
+                setPlanCategory(value);
+                setForm({ ...form, plan_type: "" });
+              }}
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select plan category" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLAN_CATEGORIES.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="plan_type">Plan</Label>
+            <Select
+              value={form.plan_type}
+              onValueChange={(value) => setForm({ ...form, plan_type: value })}
+              disabled={!planCategory}
+              required
+            >
+              <SelectTrigger id="plan_type">
+                <SelectValue placeholder="Select plan" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryPlans.map((plan) => (
+                  <SelectItem key={plan.id} value={plan.name}>
+                    {plan.name} — {plan.speed} — ₹{plan.amount}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -243,7 +290,7 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
           <DialogFooter>
             <Button
               type="submit"
-              disabled={loading || form.connection_types.length === 0}
+              disabled={loading || form.connection_types.length === 0 || !form.plan_type}
             >
               {loading ? "Saving..." : "Save"}
             </Button>
