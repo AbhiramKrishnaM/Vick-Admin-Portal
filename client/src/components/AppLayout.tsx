@@ -1,10 +1,13 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LogOut, Users } from "lucide-react";
+import { LogOut, Users, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clearToken } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-const navItems = [{ to: "/customers", label: "Customers", icon: Users }];
+const navItems = [
+  { to: "/customers", label: "Customers", icon: Users },
+  { to: "/plans", label: "Plans", icon: ListChecks },
+];
 
 export function AppLayout() {
   const navigate = useNavigate();
