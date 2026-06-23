@@ -55,6 +55,7 @@ function formFromCustomer(customer: Customer): CustomerInput {
     plan_type: customer.plan_type,
     status: customer.status,
     payment_method: customer.payment_method,
+    cable_amount: customer.cable_amount,
   };
 }
 
@@ -262,7 +263,7 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
           </div>
           )}
 
-          {form.connection_types.includes("internet") && (
+          {form.connection_types.includes("internet") && planCategory && (
           <div className="flex flex-col gap-2">
             <Label htmlFor="plan_type">Plan</Label>
             <Select

@@ -120,7 +120,15 @@ export function CustomersPage() {
                       : ""}
                   </TableCell>
                   <TableCell>{formatConnectionTypes(customer.connection_types)}</TableCell>
-                  <TableCell>{customer.plan_type}</TableCell>
+                  <TableCell>
+                    {customer.cable_amount && customer.plan_type
+                      ? `₹${customer.cable_amount}/mo // ${customer.plan_type}`
+                      : customer.plan_type
+                        ? customer.plan_type
+                        : customer.cable_amount
+                          ? `₹${customer.cable_amount}/mo`
+                          : "—"}
+                  </TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
