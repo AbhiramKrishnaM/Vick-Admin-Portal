@@ -1,3 +1,4 @@
+import cron from "node-cron";
 import { generateInternetPayments } from "../services/internetPayment.service.js";
 import { generateCablePayments } from "../services/cablePayment.service.js";
 
@@ -5,7 +6,6 @@ async function runGeneration(fastify) {
   try {
     let total = 0;
     let generated;
-    // Loop to catch up if multiple periods were missed (e.g. server was down)
     do {
       const [internet, cable] = await Promise.all([
         generateInternetPayments(fastify),
@@ -24,6 +24,9 @@ async function runGeneration(fastify) {
 }
 
 export function startPaymentCron(fastify) {
+  // Run once on startup to catch any missed periods
   runGeneration(fastify);
-  setInterval(() => runGeneration(fastify), 24 * 60 * 60 * 1000);
+
+  // Then fire every day at midnight
+  cron.schedule("0 0 * * *", () => runGeneration(fastify));
 }

@@ -23,3 +23,10 @@ export function recordCablePayment(customerId: number, amount: number, paymentMe
     body: JSON.stringify({ customer_id: customerId, amount, payment_method: paymentMethod }),
   });
 }
+
+export function initCablePayments(customerId: number) {
+  return apiFetch<CablePayment[]>("/cable-payments/init", {
+    method: "POST",
+    body: JSON.stringify({ customer_id: customerId }),
+  });
+}

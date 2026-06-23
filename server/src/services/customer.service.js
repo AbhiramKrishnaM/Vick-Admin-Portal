@@ -93,16 +93,59 @@ export async function updateCustomer(fastify, id, data) {
     return getCustomerById(fastify, id);
   }
 
-  const setClauses = fields.map((field, index) => `${field} = $${index + 2}`);
-  const values = fields.map((field) => data[field]);
+  const client = await fastify.pg.connect();
+  try {
+    await client.query("BEGIN");
 
-  const { rows } = await fastify.pg.query(
-    `UPDATE customers SET ${setClauses.join(", ")}, updated_at = now()
-     WHERE id = $1
-     RETURNING *`,
-    [id, ...values],
-  );
-  return rows[0] ?? null;
+    const { rows: oldRows } = await client.query(
+      "SELECT * FROM customers WHERE id = $1", [id],
+    );
+    const old = oldRows[0];
+
+    const setClauses = fields.map((field, index) => `${field} = $${index + 2}`);
+    const values = fields.map((field) => data[field]);
+    const { rows } = await client.query(
+      `UPDATE customers SET ${setClauses.join(", ")}, updated_at = now()
+       WHERE id = $1 RETURNING *`,
+      [id, ...values],
+    );
+    const updated = rows[0];
+    if (!updated) { await client.query("ROLLBACK"); return null; }
+
+    const newTypes = updated.connection_types;
+    const oldTypes = old?.connection_types ?? [];
+
+    if (newTypes.includes("internet") && !oldTypes.includes("internet")) {
+      const { rows: planRows } = await client.query(
+        "SELECT amount FROM plans WHERE name = $1 LIMIT 1", [updated.plan_type],
+      );
+      if (planRows.length > 0) {
+        await client.query(
+          `INSERT INTO internet_payments (customer_id, period_start, due_date, amount, status)
+           VALUES ($1, CURRENT_DATE, CURRENT_DATE + INTERVAL '30 days', $2, 'unpaid')
+           ON CONFLICT DO NOTHING`,
+          [updated.id, planRows[0].amount],
+        );
+      }
+    }
+
+    if (newTypes.includes("cable") && !oldTypes.includes("cable") && updated.cable_amount) {
+      await client.query(
+        `INSERT INTO cable_payments (customer_id, period_start, due_date, amount_due, amount_paid, pending)
+         VALUES ($1, CURRENT_DATE, CURRENT_DATE + INTERVAL '30 days', $2, 0, $2)
+         ON CONFLICT DO NOTHING`,
+        [updated.id, updated.cable_amount],
+      );
+    }
+
+    await client.query("COMMIT");
+    return updated;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function deleteCustomer(fastify, id) {

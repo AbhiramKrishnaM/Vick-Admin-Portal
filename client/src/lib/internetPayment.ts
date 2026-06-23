@@ -22,3 +22,10 @@ export function updateInternetPayment(id: number, data: Partial<Pick<InternetPay
     body: JSON.stringify(data),
   });
 }
+
+export function initInternetPayments(customerId: number) {
+  return apiFetch<InternetPayment[]>("/internet-payments/init", {
+    method: "POST",
+    body: JSON.stringify({ customer_id: customerId }),
+  });
+}

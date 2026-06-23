@@ -33,11 +33,13 @@ import { getCustomerById, type Customer, PAYMENT_METHODS } from "@/lib/customer"
 import {
   listInternetPayments,
   updateInternetPayment,
+  initInternetPayments,
   type InternetPayment,
 } from "@/lib/internetPayment";
 import {
   listCablePayments,
   recordCablePayment,
+  initCablePayments,
   type CablePayment,
 } from "@/lib/cablePayment";
 import { toast } from "sonner";
@@ -55,6 +57,7 @@ function formatDate(dateStr: string) {
 function InternetTab({ customerId }: { customerId: number }) {
   const [payments, setPayments] = useState<InternetPayment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initing, setIniting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -66,6 +69,18 @@ function InternetTab({ customerId }: { customerId: number }) {
       setLoading(false);
     }
   }, [customerId]);
+
+  async function handleInit() {
+    setIniting(true);
+    try {
+      setPayments(await initInternetPayments(customerId));
+      toast.success("First record created");
+    } catch {
+      toast.error("Failed to create record");
+    } finally {
+      setIniting(false);
+    }
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -110,8 +125,13 @@ function InternetTab({ customerId }: { customerId: number }) {
         <TableBody>
           {payments.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground">
-                No records yet.
+              <TableCell colSpan={6} className="text-center py-6">
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-sm text-muted-foreground">No records yet.</p>
+                  <Button size="sm" variant="outline" onClick={handleInit} disabled={initing}>
+                    {initing ? "Creating..." : "Add First Record"}
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ) : (
@@ -240,6 +260,7 @@ function RecordPaymentDialog({
 function CableTab({ customerId }: { customerId: number }) {
   const [payments, setPayments] = useState<CablePayment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initing, setIniting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -253,6 +274,18 @@ function CableTab({ customerId }: { customerId: number }) {
   }, [customerId]);
 
   useEffect(() => { load(); }, [load]);
+
+  async function handleInit() {
+    setIniting(true);
+    try {
+      setPayments(await initCablePayments(customerId));
+      toast.success("First record created");
+    } catch {
+      toast.error("Failed to create record");
+    } finally {
+      setIniting(false);
+    }
+  }
 
   if (loading) return <p className="text-sm text-muted-foreground p-4">Loading...</p>;
 
@@ -277,8 +310,13 @@ function CableTab({ customerId }: { customerId: number }) {
           <TableBody>
             {payments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  No records yet.
+                <TableCell colSpan={7} className="text-center py-6">
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-sm text-muted-foreground">No records yet.</p>
+                    <Button size="sm" variant="outline" onClick={handleInit} disabled={initing}>
+                      {initing ? "Creating..." : "Add First Record"}
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
