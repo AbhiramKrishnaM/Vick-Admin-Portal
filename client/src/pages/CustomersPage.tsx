@@ -114,7 +114,22 @@ export function CustomersPage() {
                   </TableCell>
                   <TableCell>{formatConnectionTypes(customer.connection_types)}</TableCell>
                   <TableCell>{customer.plan_type}</TableCell>
-                  <TableCell>{customer.status}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                        customer.status === "Active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block w-2 h-2 rounded-full animate-pulse ${
+                          customer.status === "Active" ? "bg-green-500" : "bg-red-500"
+                        }`}
+                      />
+                      {customer.status}
+                    </span>
+                  </TableCell>
                   <TableCell>{formatPaymentMethod(customer.payment_method)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
