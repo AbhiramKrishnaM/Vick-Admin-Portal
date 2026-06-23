@@ -99,7 +99,9 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
         ? [...prev.connection_types, value]
         : prev.connection_types.filter((type) => type !== value),
       cable_amount: value === "cable" && !checked ? null : prev.cable_amount,
+      plan_type: value === "internet" && !checked ? "" : prev.plan_type,
     }));
+    if (value === "internet" && !checked) setPlanCategory("");
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -110,6 +112,9 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
       const payload: CustomerInput = { ...form };
       if (!payload.second_phone_number) {
         delete (payload as Partial<CustomerInput>).second_phone_number;
+      }
+      if (!payload.plan_type) {
+        payload.plan_type = null;
       }
       if (customer) {
         await updateCustomer(customer.id, payload);
@@ -232,6 +237,7 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
             </div>
           )}
 
+          {form.connection_types.includes("internet") && (
           <div className="flex flex-col gap-2">
             <Label>Plan Category</Label>
             <Select
@@ -254,7 +260,9 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
               </SelectContent>
             </Select>
           </div>
+          )}
 
+          {form.connection_types.includes("internet") && (
           <div className="flex flex-col gap-2">
             <Label htmlFor="plan_type">Plan</Label>
             <Select
@@ -275,6 +283,7 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
               </SelectContent>
             </Select>
           </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <Label>Status</Label>
@@ -341,7 +350,7 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
               disabled={
                 loading ||
                 form.connection_types.length === 0 ||
-                !form.plan_type ||
+                (form.connection_types.includes("internet") && !form.plan_type) ||
                 (form.connection_types.includes("cable") && !form.cable_amount)
               }
             >

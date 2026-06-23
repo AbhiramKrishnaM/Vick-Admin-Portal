@@ -25,10 +25,10 @@ const customerProperties = {
     minItems: 1,
     uniqueItems: true,
   },
-  plan_type: { type: "string", minLength: 1 },
+  plan_type: { anyOf: [{ type: "string", minLength: 1 }, { type: "null" }] },
   status: { type: "string", enum: CUSTOMER_STATUS_VALUES },
   payment_method: { type: "string", enum: PAYMENT_METHOD_VALUES },
-  cable_amount: { type: "integer", enum: CABLE_AMOUNTS, nullable: true },
+  cable_amount: { type: ["integer", "null"], enum: [...CABLE_AMOUNTS, null] },
 };
 
 const requiredCustomerFields = [
@@ -37,7 +37,6 @@ const requiredCustomerFields = [
   "id_proof_type",
   "phone_number",
   "connection_types",
-  "plan_type",
   "status",
   "payment_method",
 ];

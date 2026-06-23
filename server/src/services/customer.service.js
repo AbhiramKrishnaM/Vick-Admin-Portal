@@ -32,7 +32,7 @@ export async function createCustomer(fastify, data) {
         data.phone_number,
         data.second_phone_number ?? null,
         data.connection_types,
-        data.plan_type,
+        data.plan_type ?? null,
         data.status,
         data.payment_method,
         data.cable_amount ?? null,

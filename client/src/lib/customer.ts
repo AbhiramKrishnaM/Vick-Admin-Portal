@@ -40,7 +40,9 @@ export interface Customer {
   updated_at: string;
 }
 
-export type CustomerInput = Omit<Customer, "id" | "created_at" | "updated_at">;
+export type CustomerInput = Omit<Customer, "id" | "created_at" | "updated_at"> & {
+  plan_type: string | null;
+};
 
 export function listCustomers() {
   return apiFetch<Customer[]>("/customers");

@@ -1,0 +1,1 @@
+ALTER TABLE customers ALTER COLUMN plan_type DROP NOT NULL;
