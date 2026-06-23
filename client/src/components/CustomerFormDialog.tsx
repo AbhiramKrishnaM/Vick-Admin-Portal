@@ -256,13 +256,40 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="status">Status</Label>
-            <Input
-              id="status"
+            <Label>Status</Label>
+            <Select
               value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
+              onValueChange={(value) => setForm({ ...form, status: value })}
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Not Active">Not Active</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.status && (
+              <div className="flex items-center gap-2 mt-1">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                    form.status === "Active"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  <span
+                    className={`inline-block w-2 h-2 rounded-full ${
+                      form.status === "Active"
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-red-500 animate-pulse"
+                    }`}
+                  />
+                  {form.status}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
