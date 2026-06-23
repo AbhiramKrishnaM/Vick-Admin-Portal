@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -104,7 +104,14 @@ export function CustomersPage() {
             ) : (
               customers.map((customer) => (
                 <TableRow key={customer.id}>
-                  <TableCell>{customer.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      to={`/customers/${customer.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {customer.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{customer.address}</TableCell>
                   <TableCell>
                     {customer.phone_number}

@@ -35,6 +35,7 @@ export interface Customer {
   plan_type: string;
   status: string;
   payment_method: string;
+  cable_amount: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -57,6 +58,10 @@ export function updateCustomer(id: number, data: Partial<CustomerInput>) {
     method: "PATCH",
     body: JSON.stringify(data),
   });
+}
+
+export function getCustomerById(id: number) {
+  return apiFetch<Customer>(`/customers/${id}`);
 }
 
 export function deleteCustomer(id: number) {

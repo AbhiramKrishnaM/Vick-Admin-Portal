@@ -41,6 +41,7 @@ const emptyForm: CustomerInput = {
   plan_type: "",
   status: "",
   payment_method: "",
+  cable_amount: null,
 };
 
 function formFromCustomer(customer: Customer): CustomerInput {
@@ -97,6 +98,7 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
       connection_types: checked
         ? [...prev.connection_types, value]
         : prev.connection_types.filter((type) => type !== value),
+      cable_amount: value === "cable" && !checked ? null : prev.cable_amount,
     }));
   }
 
@@ -211,6 +213,25 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
             </div>
           </div>
 
+          {form.connection_types.includes("cable") && (
+            <div className="flex flex-col gap-2">
+              <Label>Cable Plan</Label>
+              <Select
+                value={form.cable_amount?.toString() ?? ""}
+                onValueChange={(v) => setForm({ ...form, cable_amount: Number(v) })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select cable plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="200">₹200 / month</SelectItem>
+                  <SelectItem value="250">₹250 / month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <Label>Plan Category</Label>
             <Select
@@ -317,7 +338,12 @@ export function CustomerFormDialog({ customer, trigger, onSaved }: CustomerFormD
           <DialogFooter>
             <Button
               type="submit"
-              disabled={loading || form.connection_types.length === 0 || !form.plan_type}
+              disabled={
+                loading ||
+                form.connection_types.length === 0 ||
+                !form.plan_type ||
+                (form.connection_types.includes("cable") && !form.cable_amount)
+              }
             >
               {loading ? "Saving..." : "Save"}
             </Button>

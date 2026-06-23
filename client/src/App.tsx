@@ -3,6 +3,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import { LoginPage } from "@/pages/LoginPage";
 import { CustomersPage } from "@/pages/CustomersPage";
+import { CustomerDetailPage } from "@/pages/CustomerDetailPage";
 import { PlansPage } from "@/pages/PlansPage";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -14,6 +15,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/customers/:id" element={<CustomerDetailPage />} />
             <Route path="/plans" element={<PlansPage />} />
           </Route>
         </Route>

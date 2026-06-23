@@ -2,6 +2,7 @@ import { ID_PROOF_TYPE_VALUES } from "../src/constants/idProofTypes.js";
 import { CONNECTION_TYPE_VALUES } from "../src/constants/connectionTypes.js";
 import { PAYMENT_METHOD_VALUES } from "../src/constants/paymentMethods.js";
 import { CUSTOMER_STATUS_VALUES } from "../src/constants/customerStatuses.js";
+import { CABLE_AMOUNTS } from "../src/constants/cableAmounts.js";
 import { ROLES } from "../src/constants/roles.js";
 import {
   createCustomer,
@@ -27,6 +28,7 @@ const customerProperties = {
   plan_type: { type: "string", minLength: 1 },
   status: { type: "string", enum: CUSTOMER_STATUS_VALUES },
   payment_method: { type: "string", enum: PAYMENT_METHOD_VALUES },
+  cable_amount: { type: "integer", enum: CABLE_AMOUNTS, nullable: true },
 };
 
 const requiredCustomerFields = [
